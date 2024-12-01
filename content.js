@@ -1,5 +1,12 @@
 console.log("Content script running");
 
+// Function to check if we're on a new issue or new PR page
+function isNewIssuePage() {
+    const currentPath = window.location.pathname;
+    const newIssueRegex = /^\/[^/]+\/[^/]+\/(issues\/new|pull\/new)$/;
+    return newIssueRegex.test(currentPath);
+}
+
 // Function to get repository details (owner and repo name) from the GitHub page URL
 function getRepoDetails() {
     const pathSegments = window.location.pathname.split('/');
@@ -117,6 +124,12 @@ function displaySimilarIssues(issues) {
 
 // Function to initialize the listener
 function initializeIssueListener() {
+    // Only process if on new issue or new PR page 
+    if (!isNewIssuePage()) {
+        console.log("Not on a new issue or PR page. Skipping listen initialization."); 
+        return; 
+    }
+
     // Multiple selectors for different GitHub page contexts
     const issueTitleField = document.querySelector(
         'input[name="issue[title]"],' +   // New issue page
@@ -156,12 +169,7 @@ function initializeIssueListener() {
                 }
             }
         }, 500));  // 500ms debounce to prevent too many API calls
-    } else {
-        console.error('Issue title input field not found. Retrying in 1 second.');
-        // Log page structure to help diagnose
-        console.log('Document body innerHTML:', document.body.innerHTML);
-        setTimeout(initializeIssueListener, 1000);
-    }
+    } 
 }
 
 // Debounce utility function
