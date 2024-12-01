@@ -1,3 +1,5 @@
+console.log("Content script running");
+
 // Function to clean the title and extract relevant keywords (ignoring filler words)
 function cleanTitle(title) {
     const fillerWords = ["a", "an", "the", "of", "and", "or"];
@@ -12,21 +14,24 @@ function cleanTitle(title) {
     return { owner, repo };
 }
   
-// Function to fetch issues from the GitHub repository
-function fetchIssues(owner, repo) {
+// Function to fetch issues based on the repo owner, repo name, and the issue title
+function fetchIssues(owner, repo, newIssueTitle) {
     const apiUrl = `https://api.github.com/repos/${owner}/${repo}/issues?state=open`;
-    
+
     fetch(apiUrl)
-      .then(response => response.json())
-      .then(issues => {
-        console.log('Issues fetched:', issues);
-        
-        // Get the current new issue title from the input field
-        const newIssueTitle = document.querySelector('input[name="issue[title]"]').value;
-        const similarIssues = findSimilarIssues(newIssueTitle, issues);
-        displaySimilarIssues(similarIssues); 
-      })
-      .catch(error => console.error('Error fetching issues:', error));
+        .then(response => response.json())
+        .then(issues => {
+            if (issues && issues.length > 0) {
+                console.log('Issues fetched:', issues);
+
+                // Find similar issues by comparing titles
+                const similarIssues = findSimilarIssues(newIssueTitle, issues);
+                displaySimilarIssues(similarIssues);
+            } else {
+                console.log('No open issues found.');
+            }
+        })
+        .catch(error => console.error('Error fetching issues:', error));
 }
   
 // Function to find similar issues based on keywords in the title
@@ -41,42 +46,49 @@ function findSimilarIssues(newTitle, existingIssues) {
 }
   
 // Function to display similar issues to the user
-function displaySimilarIssues(similarIssues) {
-    // Create a suggestion box on the page
-    const suggestionsContainer = document.createElement('div');
-    suggestionsContainer.style.position = "absolute";
-    suggestionsContainer.style.top = "100px";
-    suggestionsContainer.style.left = "20px";
-    suggestionsContainer.style.padding = "10px";
-    suggestionsContainer.style.backgroundColor = "white";
-    suggestionsContainer.style.border = "1px solid #ccc";
-    suggestionsContainer.style.boxShadow = "0 0 10px rgba(0, 0, 0, 0.1)";
-    suggestionsContainer.style.zIndex = "9999";
-    suggestionsContainer.innerHTML = "<strong>Similar Issues:</strong>";
-    
-    if (similarIssues.length === 0) {
-      suggestionsContainer.innerHTML += "<p>No similar issues found.</p>";
+function displaySimilarIssues(issues) {
+    // Create the suggestion box if it doesn't exist
+    let suggestionsContainer = document.querySelector('.similar-issues-suggestions');
+    if (!suggestionsContainer) {
+        suggestionsContainer = document.createElement('div');
+        suggestionsContainer.classList.add('similar-issues-suggestions');
+        document.body.appendChild(suggestionsContainer);
+    } else {
+        suggestionsContainer.innerHTML = ''; // Clear previous suggestions
     }
-  
-    // Loop through similar issues and display them
-    similarIssues.forEach(issue => {
-      const issueLink = document.createElement('a');
-      issueLink.href = issue.html_url;
-      issueLink.target = "_blank";
-      issueLink.textContent = issue.title;
-      suggestionsContainer.appendChild(document.createElement('br'));
-      suggestionsContainer.appendChild(issueLink);
-    });
-  
-    document.body.appendChild(suggestionsContainer);
+
+    if (issues.length === 0) {
+        suggestionsContainer.innerHTML = 'No similar issues found.';
+    } else {
+        issues.forEach(issue => {
+            const issueElement = document.createElement('div');
+            issueElement.classList.add('suggestion');
+            const issueLink = document.createElement('a');
+            issueLink.href = issue.html_url;
+            issueLink.target = "_blank";
+            issueLink.textContent = issue.title;
+            issueElement.appendChild(issueLink);
+            suggestionsContainer.appendChild(issueElement);
+        });
+    }
 }
+
   
-// Listen for changes in the issue title and suggest similar issues based on title
+// Ensure the issue title input is selected
 const issueTitleField = document.querySelector('input[name="issue[title]"]');
-  if (issueTitleField) {
+if (issueTitleField) {
+    // Add event listener for the input event
     issueTitleField.addEventListener('input', (event) => {
-      const repoDetails = getRepoDetails(); // Get repo details every time user types
-      fetchIssues(repoDetails.owner, repoDetails.repo); // Fetch issues and suggest similar ones
+        const newTitle = event.target.value.trim();  // Clean up extra spaces
+
+        if (newTitle) {
+            const { owner, repo } = getRepoDetails(); // Assuming you have this function to get the repo details
+            fetchIssues(owner, repo, newTitle);
+        }
     });
+} else {
+    console.error('Issue title input field not found.');
 }
+
+
   
