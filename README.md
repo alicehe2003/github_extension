@@ -14,3 +14,9 @@ The `manifest.json` grants access to the active tab and runs `background.js` in 
 - Consider the issue description (instead of just title). 
 - Allow for selection of the issue directly through the extension. 
 - Extend to work for private repos. Currently only works for public repos. 
+
+# TODO 
+
+- Use better error handling.
+- Write cleaner code. 
+- Bring css into external file for styles. 
