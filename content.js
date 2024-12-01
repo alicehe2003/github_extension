@@ -128,6 +128,13 @@ function initializeIssueListener() {
 
     if (issueTitleField) {
 
+        console.log('Issue title field located');
+
+        // Prevent default select behaviour 
+        issueTitleField.addEventListener('focus', (event) => {
+            event.target.setSelectionRange(0, 0); 
+        }); 
+
         issueTitleField.addEventListener('input', debounce((event) => {
             const newTitle = event.target.value.trim();
 
