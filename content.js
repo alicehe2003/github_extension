@@ -63,12 +63,12 @@ function displaySimilarIssues(issues) {
         existingContainer.remove();
     }
 
-    // Find the issue title input field
+    // Updated selector to work on both issues and PRs
     const issueTitleField = document.querySelector(
-        'input[name="issue[title]"],' +         // New issue page
-        '#issue_title,' +                       // Issue edit page
-        'input[name="pull_request[title]"],' +  // New PR page
-        'input[placeholder="Title"]'            // New issue/PR page 
+        'input[name="issue[title]"],' +   // New issue page
+        '#issue_title,' +                 // Issue edit page
+        'input[name="pull_request[title]"],' + // New PR page
+        'input[placeholder="Title"]'      // New issue/PR page (alternative)
     );
 
     if (!issueTitleField) return;
@@ -80,6 +80,22 @@ function displaySimilarIssues(issues) {
     // Create suggestions div
     const suggestionsDiv = document.createElement('div');
     suggestionsDiv.classList.add('similar-issues-suggestions');
+
+    // Create close button
+    const closeButton = document.createElement('button');
+    closeButton.textContent = 'x';
+    closeButton.classList.add('similar-issues-close-btn');
+    
+    console.log('Close button created:', closeButton);
+    console.log('Close button parent:', suggestionsContainer);
+
+    // Add click event to close button
+    closeButton.addEventListener('click', () => {
+        suggestionsContainer.remove();
+    });
+
+    // Append close button to container
+    suggestionsContainer.appendChild(closeButton);
 
     // Append suggestions div to container
     suggestionsContainer.appendChild(suggestionsDiv);

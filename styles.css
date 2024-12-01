@@ -1,6 +1,6 @@
 /* Styles for similar issues suggestions container */
 .similar-issues-suggestions {
-    position: absolute;
+    position: relative;
     width: 100%;
     max-width: 100%;
     background-color: #f6f8fa;
@@ -36,4 +36,28 @@
 .similar-issues-container {
     position: relative;
     width: 100%;
+}
+
+/* Styles for the close button */
+.similar-issues-close-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: none;
+    border: none;
+    color: #000000;
+    font-size: 20px;
+    font-weight: bold;
+    cursor: pointer;
+    z-index: 10000; 
+    padding: 0;
+    line-height: 1;
+    transition: color 0.2s ease;
+    width: 20px;
+    height: 20px;
+    visibility: visible;
+}
+
+.similar-issues-close-btn:hover {
+    color: #24292e;
 }
