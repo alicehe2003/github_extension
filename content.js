@@ -50,25 +50,11 @@ function findSimilarIssues(newTitle, existingIssues) {
 function displaySimilarIssues(issues) {
     console.log('Displaying similar issues - Total issues:', issues.length);
     
-    // Create or find suggestions container with very explicit positioning
+    // Create or find suggestions container
     let suggestionsContainer = document.querySelector('.similar-issues-suggestions');
     if (!suggestionsContainer) {
         suggestionsContainer = document.createElement('div');
         suggestionsContainer.classList.add('similar-issues-suggestions');
-        suggestionsContainer.style.cssText = `
-            position: absolute;
-            top: 100px;  /* Adjust as needed */
-            left: 50%;
-            transform: translateX(-50%);
-            width: 80%;
-            max-width: 600px;
-            background-color: #f6f8fa;
-            border: 1px solid #e1e4e8;
-            border-radius: 6px;
-            padding: 15px;
-            z-index: 9999;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        `;
     }
 
     // Ensure container is in the document
@@ -83,41 +69,23 @@ function displaySimilarIssues(issues) {
     console.log('Suggestions container created/found:', suggestionsContainer);
 
     if (issues.length === 0) {
-        suggestionsContainer.innerHTML = '<p style="color: #586069;">No similar issues found.</p>';
+        suggestionsContainer.innerHTML = '<p>No similar issues found.</p>';
         return;
     }
 
     // Create header
     const headerElement = document.createElement('h3');
     headerElement.textContent = 'Similar Existing Issues:';
-    headerElement.style.cssText = `
-        color: #24292e;
-        margin-bottom: 10px;
-        border-bottom: 1px solid #e1e4e8;
-        padding-bottom: 5px;
-    `;
     suggestionsContainer.appendChild(headerElement);
 
     // Create list of similar issues
     issues.slice(0, 5).forEach((issue, index) => {
         const issueElement = document.createElement('div');
-        issueElement.style.cssText = `
-            margin-bottom: 10px;
-            padding: 10px;
-            background-color: white;
-            border-radius: 4px;
-            border: 1px solid #e1e4e8;
-        `;
         
         const issueLink = document.createElement('a');
         issueLink.href = issue.html_url;
         issueLink.target = "_blank";
         issueLink.textContent = `#${issue.number}: ${issue.title}`;
-        issueLink.style.cssText = `
-            color: #0366d6;
-            text-decoration: none;
-            font-weight: 600;
-        `;
         
         issueElement.appendChild(issueLink);
         suggestionsContainer.appendChild(issueElement);
