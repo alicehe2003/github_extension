@@ -1,17 +1,15 @@
 /* Styles for similar issues suggestions container */
 .similar-issues-suggestions {
     position: absolute;
-    top: 100px;  /* Adjust as needed */
-    left: 50%;
-    transform: translateX(-50%);
-    width: 80%;
-    max-width: 600px;
+    width: 100%;
+    max-width: 100%;
     background-color: #f6f8fa;
     border: 1px solid #e1e4e8;
     border-radius: 6px;
     padding: 15px;
     z-index: 9999;
     box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    margin-top: 5px;
 }
 
 .similar-issues-suggestions h3 {
@@ -33,4 +31,9 @@
     color: #0366d6;
     text-decoration: none;
     font-weight: 600;
+}
+
+.similar-issues-container {
+    position: relative;
+    width: 100%;
 }

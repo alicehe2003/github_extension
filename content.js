@@ -50,56 +50,69 @@ function findSimilarIssues(newTitle, existingIssues) {
 function displaySimilarIssues(issues) {
     console.log('Displaying similar issues - Total issues:', issues.length);
     
-    // Create or find suggestions container
-    let suggestionsContainer = document.querySelector('.similar-issues-suggestions');
-    if (!suggestionsContainer) {
-        suggestionsContainer = document.createElement('div');
-        suggestionsContainer.classList.add('similar-issues-suggestions');
+    // Remove any existing suggestions container
+    const existingContainer = document.querySelector('.similar-issues-container');
+    if (existingContainer) {
+        existingContainer.remove();
     }
 
-    // Ensure container is in the document
-    if (!suggestionsContainer.parentElement) {
-        document.body.appendChild(suggestionsContainer);
-    }
+    // Find the issue title input field
+    const issueTitleField = document.querySelector(
+        'input[name="issue[title]"],' +   // New issue page
+        '#issue_title,' +                 // Issue edit page
+        'input[placeholder="Title"]'      // New issue page (alternative)
+    );
 
-    // Clear previous suggestions
-    suggestionsContainer.innerHTML = '';
+    if (!issueTitleField) return;
+
+    // Create suggestions container
+    const suggestionsContainer = document.createElement('div');
+    suggestionsContainer.classList.add('similar-issues-container');
+
+    // Create suggestions div
+    const suggestionsDiv = document.createElement('div');
+    suggestionsDiv.classList.add('similar-issues-suggestions');
+
+    // Append suggestions div to container
+    suggestionsContainer.appendChild(suggestionsDiv);
 
     // Debug logging
-    console.log('Suggestions container created/found:', suggestionsContainer);
+    console.log('Suggestions container created:', suggestionsContainer);
 
     if (issues.length === 0) {
-        suggestionsContainer.innerHTML = '<p>No similar issues found.</p>';
-        return;
+        suggestionsDiv.innerHTML = '<p>No similar issues found.</p>';
+    } else {
+        // Create header
+        const headerElement = document.createElement('h3');
+        headerElement.textContent = 'Similar Existing Issues:';
+        suggestionsDiv.appendChild(headerElement);
+
+        // Create list of similar issues
+        issues.slice(0, 5).forEach((issue, index) => {
+            const issueElement = document.createElement('div');
+            
+            const issueLink = document.createElement('a');
+            issueLink.href = issue.html_url;
+            issueLink.target = "_blank";
+            issueLink.textContent = `#${issue.number}: ${issue.title}`;
+            
+            issueElement.appendChild(issueLink);
+            suggestionsDiv.appendChild(issueElement);
+
+            // Debug logging for each issue
+            console.log(`Similar Issue ${index + 1}:`, {
+                number: issue.number,
+                title: issue.title,
+                url: issue.html_url
+            });
+        });
     }
 
-    // Create header
-    const headerElement = document.createElement('h3');
-    headerElement.textContent = 'Similar Existing Issues:';
-    suggestionsContainer.appendChild(headerElement);
-
-    // Create list of similar issues
-    issues.slice(0, 5).forEach((issue, index) => {
-        const issueElement = document.createElement('div');
-        
-        const issueLink = document.createElement('a');
-        issueLink.href = issue.html_url;
-        issueLink.target = "_blank";
-        issueLink.textContent = `#${issue.number}: ${issue.title}`;
-        
-        issueElement.appendChild(issueLink);
-        suggestionsContainer.appendChild(issueElement);
-
-        // Debug logging for each issue
-        console.log(`Similar Issue ${index + 1}:`, {
-            number: issue.number,
-            title: issue.title,
-            url: issue.html_url
-        });
-    });
+    // Insert the container right after the title input field
+    issueTitleField.parentNode.insertBefore(suggestionsContainer, issueTitleField.nextSibling);
 
     // Final debug log
-    console.log('Suggestions container final HTML:', suggestionsContainer.innerHTML);
+    console.log('Suggestions container final HTML:', suggestionsDiv.innerHTML);
 }
 
 // Function to initialize the listener
@@ -120,6 +133,15 @@ function initializeIssueListener() {
 
         issueTitleField.addEventListener('input', debounce((event) => {
             const newTitle = event.target.value.trim();
+
+            // Remove any existing suggestions when input is cleared
+            if (newTitle.length === 0) {
+                const existingContainer = document.querySelector('.similar-issues-container');
+                if (existingContainer) {
+                    existingContainer.remove();
+                }
+                return;
+            }
 
             if (newTitle.length > 3) { 
                 try {
