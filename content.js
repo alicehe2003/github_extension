@@ -3,8 +3,8 @@ console.log("Content script running");
 // Function to get repository details (owner and repo name) from the GitHub page URL
 function getRepoDetails() {
     const pathSegments = window.location.pathname.split('/');
-    const owner = pathSegments[1]; // The owner of the repo (e.g., 'octocat')
-    const repo = pathSegments[2];  // The repository name (e.g., 'Hello-World')
+    const owner = pathSegments[1]; // The owner of the repo 
+    const repo = pathSegments[2];  // The repository name 
     return { owner, repo };
 }
 
@@ -136,13 +136,24 @@ function displaySimilarIssues(issues) {
 
 // Function to initialize the listener
 function initializeIssueListener() {
-    const issueTitleField = document.querySelector('input[name="issue[title]"], #issue_title');
-    
+    // Multiple selectors for different GitHub page contexts
+    const issueTitleField = document.querySelector(
+        'input[name="issue[title]"],' +   // New issue page
+        '#issue_title,' +                 // Issue edit page
+        'input[placeholder="Title"]'      // New issue page (alternative)
+    );
+
+    console.log('Issue title field:', issueTitleField);
+
     if (issueTitleField) {
+        // Set focus 
+        issueTitleField.select();
+        console.log('Issue title field focused');
+
         issueTitleField.addEventListener('input', debounce((event) => {
             const newTitle = event.target.value.trim();
 
-            if (newTitle.length > 3) {  // Only search if title is substantial
+            if (newTitle.length > 3) { 
                 try {
                     const { owner, repo } = getRepoDetails();
                     fetchIssues(owner, repo, newTitle);
@@ -153,6 +164,8 @@ function initializeIssueListener() {
         }, 500));  // 500ms debounce to prevent too many API calls
     } else {
         console.error('Issue title input field not found. Retrying in 1 second.');
+        // Log page structure to help diagnose
+        console.log('Document body innerHTML:', document.body.innerHTML);
         setTimeout(initializeIssueListener, 1000);
     }
 }
