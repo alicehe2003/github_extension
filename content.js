@@ -1,10 +1,4 @@
 console.log("Content script running");
-
-// Function to clean the title and extract relevant keywords (ignoring filler words)
-function cleanTitle(title) {
-    const fillerWords = ["a", "an", "the", "of", "and", "or"];
-    return title.split(" ").filter(word => !fillerWords.includes(word.toLowerCase()));
-  }
   
   // Function to get repository details (owner and repo name) from the GitHub page URL
   function getRepoDetails() {
@@ -19,31 +13,42 @@ function fetchIssues(owner, repo, newIssueTitle) {
     const apiUrl = `https://api.github.com/repos/${owner}/${repo}/issues?state=open`;
 
     fetch(apiUrl)
-        .then(response => response.json())
-        .then(issues => {
-            if (issues && issues.length > 0) {
-                console.log('Issues fetched:', issues);
+    .then(response => response.json())
+    .then(issues => {
+        console.log('Issues fetched:', issues);
+        
+        // Get the current new issue title from the input field
+        const newIssueTitle = document.querySelector('input[name="issue[title]"]').value;
+        console.log('New issue title:', newIssueTitle); // Log the title to check if it is correct
 
-                // Find similar issues by comparing titles
-                const similarIssues = findSimilarIssues(newIssueTitle, issues);
-                displaySimilarIssues(similarIssues);
-            } else {
-                console.log('No open issues found.');
-            }
-        })
-        .catch(error => console.error('Error fetching issues:', error));
+        const similarIssues = findSimilarIssues(newIssueTitle, issues);
+        console.log('Similar issues:', similarIssues);  // Log the filtered similar issues
+        
+        displaySimilarIssues(similarIssues);
+    })
+    .catch(error => console.error('Error fetching issues:', error));
 }
   
 // Function to find similar issues based on keywords in the title
 function findSimilarIssues(newTitle, existingIssues) {
-    const newTitleKeywords = cleanTitle(newTitle);
+    // Helper function to clean up titles (remove filler words)
+    const fillerWords = ["a", "an", "the", "of", "and", "or", "for", "to", "in"];
+    const cleanTitle = (title) => title
+      .split(" ")
+      .filter(word => !fillerWords.includes(word.toLowerCase()))
+      .join(" ").toLowerCase();  // Convert to lowercase for comparison
+  
+    const newTitleCleaned = cleanTitle(newTitle);
+    console.log('Cleaned new issue title:', newTitleCleaned); // Log cleaned title
   
     return existingIssues.filter(issue => {
-      const existingTitleKeywords = cleanTitle(issue.title);
-      // Check if any keyword in the new issue title matches any keyword in existing issue titles
-      return existingTitleKeywords.some(keyword => newTitleKeywords.includes(keyword));
+      const existingTitleCleaned = cleanTitle(issue.title);
+      console.log('Cleaned existing issue title:', existingTitleCleaned); // Log cleaned existing titles
+      
+      // Check if there's any overlap between keywords
+      return existingTitleCleaned.includes(newTitleCleaned);
     });
-}
+}  
   
 // Function to display similar issues to the user
 function displaySimilarIssues(issues) {
@@ -72,7 +77,6 @@ function displaySimilarIssues(issues) {
         });
     }
 }
-
   
 // Ensure the issue title input is selected
 const issueTitleField = document.querySelector('input[name="issue[title]"]');
