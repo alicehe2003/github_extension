@@ -1,4 +1,4 @@
-console.log("Content script running");
+console.log("Track similar issues on GitHub - extension running.");
 
 // Function to check if we're on a new issue or new PR page
 function isNewIssuePage() {
@@ -22,11 +22,7 @@ function fetchIssues(owner, repo, newIssueTitle) {
     fetch(apiUrl)
     .then(response => response.json())
     .then(issues => {
-        console.log('Issues fetched:', issues);
-        
         const similarIssues = findSimilarIssues(newIssueTitle, issues);
-        console.log('Similar issues:', similarIssues);
-        
         displaySimilarIssues(similarIssues);
     })
     .catch(error => console.error('Error fetching issues:', error));
@@ -55,8 +51,7 @@ function findSimilarIssues(newTitle, existingIssues) {
 
 // Function to display similar issues to the user
 function displaySimilarIssues(issues) {
-    console.log('Displaying similar issues - Total issues:', issues.length);
-    
+
     // Remove any existing suggestions container
     const existingContainer = document.querySelector('.similar-issues-container');
     if (existingContainer) {
@@ -86,9 +81,6 @@ function displaySimilarIssues(issues) {
     closeButton.textContent = 'x';
     closeButton.classList.add('similar-issues-close-btn');
     
-    console.log('Close button created:', closeButton);
-    console.log('Close button parent:', suggestionsContainer);
-
     // Add click event to close button
     closeButton.addEventListener('click', () => {
         suggestionsContainer.remove();
@@ -100,9 +92,6 @@ function displaySimilarIssues(issues) {
     // Append suggestions div to container
     suggestionsContainer.appendChild(suggestionsDiv);
 
-    // Debug logging
-    console.log('Suggestions container created:', suggestionsContainer);
-
     if (issues.length === 0) {
         suggestionsDiv.innerHTML = '<p>No similar issues found.</p>';
     } else {
@@ -111,7 +100,7 @@ function displaySimilarIssues(issues) {
         headerElement.textContent = 'Similar Existing Issues:';
         suggestionsDiv.appendChild(headerElement);
 
-        // Create list of similar issues
+        // Create list of similar issues, take first 5
         issues.slice(0, 5).forEach((issue, index) => {
             const issueElement = document.createElement('div');
             
@@ -122,28 +111,17 @@ function displaySimilarIssues(issues) {
             
             issueElement.appendChild(issueLink);
             suggestionsDiv.appendChild(issueElement);
-
-            // Debug logging for each issue
-            console.log(`Similar Issue ${index + 1}:`, {
-                number: issue.number,
-                title: issue.title,
-                url: issue.html_url
-            });
         });
     }
 
     // Insert the container right after the title input field
     issueTitleField.parentNode.insertBefore(suggestionsContainer, issueTitleField.nextSibling);
-
-    // Final debug log
-    console.log('Suggestions container final HTML:', suggestionsDiv.innerHTML);
 }
 
 // Function to initialize the listener
 function initializeIssueListener() {
     // Only process if on new issue or new PR page 
     if (!isNewIssuePage()) {
-        console.log("Not on a new issue or PR page. Skipping listen initialization."); 
         return; 
     }
 
@@ -155,11 +133,7 @@ function initializeIssueListener() {
         'input[placeholder="Title"]'            // New issue/PR page
     );
 
-    console.log('Issue title field:', issueTitleField);
-
     if (issueTitleField) {
-
-        console.log('Issue title field located');
 
         // Prevent default select behaviour 
         issueTitleField.addEventListener('focus', (event) => {
