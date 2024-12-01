@@ -127,9 +127,6 @@ function initializeIssueListener() {
     console.log('Issue title field:', issueTitleField);
 
     if (issueTitleField) {
-        // Set focus 
-        issueTitleField.select();
-        console.log('Issue title field focused');
 
         issueTitleField.addEventListener('input', debounce((event) => {
             const newTitle = event.target.value.trim();
