@@ -3,7 +3,7 @@ console.log("Content script running");
 // Function to check if we're on a new issue or new PR page
 function isNewIssuePage() {
     const currentPath = window.location.pathname;
-    const newIssueRegex = /^\/[^/]+\/[^/]+\/(issues\/new|pull\/new)$/;
+    const newIssueRegex = /^\/[^/]+\/[^/]+\/(issues\/new|pull\/new|compare)$/;
     return newIssueRegex.test(currentPath);
 }
 
@@ -65,9 +65,10 @@ function displaySimilarIssues(issues) {
 
     // Find the issue title input field
     const issueTitleField = document.querySelector(
-        'input[name="issue[title]"],' +   // New issue page
-        '#issue_title,' +                 // Issue edit page
-        'input[placeholder="Title"]'      // New issue page (alternative)
+        'input[name="issue[title]"],' +         // New issue page
+        '#issue_title,' +                       // Issue edit page
+        'input[name="pull_request[title]"],' +  // New PR page
+        'input[placeholder="Title"]'            // New issue/PR page 
     );
 
     if (!issueTitleField) return;
@@ -132,9 +133,10 @@ function initializeIssueListener() {
 
     // Multiple selectors for different GitHub page contexts
     const issueTitleField = document.querySelector(
-        'input[name="issue[title]"],' +   // New issue page
-        '#issue_title,' +                 // Issue edit page
-        'input[placeholder="Title"]'      // New issue page (alternative)
+        'input[name="issue[title]"],' +         // New issue page
+        '#issue_title,' +                       // Issue edit page
+        'input[name="pull_request[title]"],' +  // New PR page
+        'input[placeholder="Title"]'            // New issue/PR page
     );
 
     console.log('Issue title field:', issueTitleField);

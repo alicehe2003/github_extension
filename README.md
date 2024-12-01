@@ -12,11 +12,9 @@ The `manifest.json` grants access to the active tab and runs `background.js` in 
 
 - Use more complex language model to determine if two titles are similar. 
 - Consider the issue description (instead of just title). 
-- Allow for selection of the issue directly through the extension. 
 - Extend to work for private repos. Currently only works for public repos. 
+- Currently only displays first 5. Consider sorting list by relevance to display most relevant. 
 
 # TODO 
 
-- Use better error handling.
-- Write cleaner code. 
-- Bring css into external file for styles. 
+
