@@ -10,6 +10,11 @@ The `manifest.json` grants access to the active tab and runs `background.js` in 
 
 Used `https://www.datamuse.com/api/` to search for synonyms. Issues with titles that are similar to given title are also displayed. 
 
+Considerations for implementing search algorithms: 
+- Elasticsearch: https://www.elastic.co/elasticsearch (RESTful search engine built on top of Lucene, provides user-friendly UI, can be integrated with various languages)
+- Apache Lucene: https://lucene.apache.org/ (Java-centric)
+- Tensorflow: https://js.tensorflow.org/api/latest/ (ML library for JavaScript, supports Universal Sentence Encoder)
+
 # Future considerations 
 
 - Use more complex language model to determine if two titles are similar. 
