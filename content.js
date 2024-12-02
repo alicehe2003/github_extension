@@ -46,16 +46,60 @@ function getRepoDetails() {
     return { owner, repo };
 }
 
-// Function to fetch issues based on the repo owner and repo name
+// Function to fetch all issues based on the repo owner and repo name
 async function fetchIssues(owner, repo, newIssueTitle) {
-    const apiUrl = `https://api.github.com/repos/${owner}/${repo}/issues?state=open`;
+    const baseApiUrl = `https://api.github.com/repos/${owner}/${repo}/issues`;
+    let allIssues = [];
+    let page = 1;
+    const perPage = 100; // Maximum allowed by GitHub API per page
 
     try {
-        const response = await fetch(apiUrl);
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        console.log(`Fetching issues for repository: ${owner}/${repo}`);
+
+        while (true) {
+            const apiUrl = `${baseApiUrl}?state=open&page=${page}&per_page=${perPage}`;
+            
+            console.log(`Fetching page ${page}...`);
+            
+            const response = await fetch(apiUrl);
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            
+            const issues = await response.json();
+            
+            // If no more issues, break the loop
+            if (issues.length === 0) {
+                break;
+            }
+
+            // Append this page's issues to the total list
+            allIssues = allIssues.concat(issues);
+            
+            // If we got fewer issues than the per_page value, we've reached the last page
+            if (issues.length < perPage) {
+                break;
+            }
+            
+            // Move to next page
+            page++;
+        }
+
+        console.log(`Total open issues found: ${allIssues.length}`);
         
-        const issues = await response.json();
-        const similarIssues = await findSimilarIssues(newIssueTitle, issues);
+        // Log details of every single issue
+        console.log("All Open Issues:");
+        allIssues.forEach((issue, index) => {
+            console.log(`Issue #${index + 1}:`, {
+                number: issue.number,
+                title: issue.title,
+                state: issue.state,
+                created_at: issue.created_at,
+                url: issue.html_url
+            });
+        });
+        
+        const similarIssues = await findSimilarIssues(newIssueTitle, allIssues);
+        
+        console.log(`Number of similar issues found: ${similarIssues.length}`);
         displaySimilarIssues(similarIssues);
     } catch (error) {
         console.error('Error fetching issues:', error);
@@ -64,7 +108,7 @@ async function fetchIssues(owner, repo, newIssueTitle) {
 
 // Function to find similar issues based on keywords in the title
 async function findSimilarIssues(newTitle, existingIssues) {
-    // console.log("Finding similar issues..."); 
+    console.log("Finding similar issues..."); 
 
     const cleanTitle = (title) => title
         .toLowerCase()
@@ -73,19 +117,30 @@ async function findSimilarIssues(newTitle, existingIssues) {
 
     const titleWords = cleanTitle(newTitle);
     
-    // Ensure synonyms are always processed, even if some fail
-    const synonymsPromises = titleWords.map(async (word) => {
+    // Create a map to store original words and their synonyms
+    const keywordMap = new Map();
+
+    // Process each word to get its synonyms
+    for (const word of titleWords) {
         try {
-            return await fetchSynonyms(word);
+            // Fetch synonyms for each word
+            const synonyms = await fetchSynonyms(word);
+            
+            // Store the original word along with its synonyms
+            keywordMap.set(word, [word, ...synonyms]);
         } catch (error) {
             console.error(`Error fetching synonyms for ${word}:`, error);
-            return []; // Return empty array if synonym fetch fails
+            // If synonym fetching fails, just use the original word
+            keywordMap.set(word, [word]);
         }
-    });
+    }
 
-    const synonymsArray = await Promise.all(synonymsPromises);
-    const allKeywords = new Set(titleWords.concat(...synonymsArray));
+    // Flatten the keywords, ensuring each original word and its synonyms are included
+    const allKeywords = new Set(
+        Array.from(keywordMap.values()).flat()
+    );
 
+    // Filter issues based on the expanded keyword set
     return existingIssues.filter(issue => {
         const issueWords = new Set(cleanTitle(issue.title));
         return [...allKeywords].some(word => issueWords.has(word));
