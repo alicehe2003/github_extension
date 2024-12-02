@@ -1,5 +1,35 @@
 console.log("Track similar issues on GitHub - extension running.");
 
+const fillerWords = ["a", "an", "the", "of", "and", "or", "for", "to", "in"];
+
+// Function to fetch synonyms using Datamuse API
+async function fetchSynonyms(word) {
+    // console.log("Finding similar words to " + word); 
+
+    const apiUrl = `https://api.datamuse.com/words?rel_syn=${word}`;
+    try {
+        const response = await fetch(apiUrl);
+        if (!response.ok) throw new Error(`Error fetching synonyms: ${response.status}`);
+        const data = await response.json();
+        
+        // console.log(data); 
+
+        // Extract words from the list of word objects
+        const synonyms = data.map(entry => entry.word);
+
+        // Log each retrieved word
+        // synonyms.forEach(synonym => {
+        //     console.log(`Retrieved synonym: ${synonym}`);
+        // });
+
+        return synonyms; 
+    } catch (error) {
+        console.error(error);
+        // Return an empty array on error
+        return []; 
+    }
+}
+
 // Function to check if we're on a new issue or new PR page
 function isNewIssuePage() {
     const currentPath = window.location.pathname;
@@ -17,36 +47,48 @@ function getRepoDetails() {
 }
 
 // Function to fetch issues based on the repo owner and repo name
-function fetchIssues(owner, repo, newIssueTitle) {
+async function fetchIssues(owner, repo, newIssueTitle) {
     const apiUrl = `https://api.github.com/repos/${owner}/${repo}/issues?state=open`;
 
-    fetch(apiUrl)
-    .then(response => response.json())
-    .then(issues => {
-        const similarIssues = findSimilarIssues(newIssueTitle, issues);
+    try {
+        const response = await fetch(apiUrl);
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        
+        const issues = await response.json();
+        const similarIssues = await findSimilarIssues(newIssueTitle, issues);
         displaySimilarIssues(similarIssues);
-    })
-    .catch(error => console.error('Error fetching issues:', error));
+    } catch (error) {
+        console.error('Error fetching issues:', error);
+    }
 }
 
 // Function to find similar issues based on keywords in the title
-function findSimilarIssues(newTitle, existingIssues) {
-    const fillerWords = ["a", "an", "the", "of", "and", "or", "for", "to", "in"];
-    
+async function findSimilarIssues(newTitle, existingIssues) {
+    // console.log("Finding similar issues..."); 
+
     const cleanTitle = (title) => title
         .toLowerCase()
         .split(/\s+/)
-        .filter(word => word.length > 2 && !fillerWords.includes(word))
-        .join(" ");
+        .filter(word => word.length > 2 && !fillerWords.includes(word));
 
-    const newTitleCleaned = cleanTitle(newTitle);
+    const titleWords = cleanTitle(newTitle);
+    
+    // Ensure synonyms are always processed, even if some fail
+    const synonymsPromises = titleWords.map(async (word) => {
+        try {
+            return await fetchSynonyms(word);
+        } catch (error) {
+            console.error(`Error fetching synonyms for ${word}:`, error);
+            return []; // Return empty array if synonym fetch fails
+        }
+    });
+
+    const synonymsArray = await Promise.all(synonymsPromises);
+    const allKeywords = new Set(titleWords.concat(...synonymsArray));
 
     return existingIssues.filter(issue => {
-        const existingTitleCleaned = cleanTitle(issue.title);
-        // More robust similarity check
-        return newTitleCleaned.split(' ').some(word => 
-            existingTitleCleaned.includes(word) && word.length > 2
-        );
+        const issueWords = new Set(cleanTitle(issue.title));
+        return [...allKeywords].some(word => issueWords.has(word));
     });
 }
 
