@@ -17,4 +17,7 @@ The `manifest.json` grants access to the active tab and runs `background.js` in 
 
 # TODO 
 
-
+- Use Therasaurus API to expand on title descriptions such that more issues are considered. 
+- Edit GitHub API call such it issue descriptions are also considered. 
+- Come up with some algorithm to determine "relevance" of results. Rank them and show top 5(ish)? 
+- Extend to use AI to show "best" results. 

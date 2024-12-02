@@ -8,6 +8,7 @@ function isNewIssuePage() {
 }
 
 // Function to get repository details (owner and repo name) from the GitHub page URL
+// URL assumed to be github.com/{owner}/{repo name}
 function getRepoDetails() {
     const pathSegments = window.location.pathname.split('/');
     const owner = pathSegments[1]; // The owner of the repo 
