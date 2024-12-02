@@ -8,6 +8,8 @@ The `manifest.json` grants access to the active tab and runs `background.js` in 
 
 `background.js` logs a message when the extension is installed. Can be used (later) to handle any API calls. 
 
+Used `https://www.datamuse.com/api/` to search for synonyms. Issues with titles that are similar to given title are also displayed. 
+
 # Future considerations 
 
 - Use more complex language model to determine if two titles are similar. 
@@ -17,7 +19,6 @@ The `manifest.json` grants access to the active tab and runs `background.js` in 
 
 # TODO 
 
-- Use Therasaurus API to expand on title descriptions such that more issues are considered. 
 - Edit GitHub API call such it issue descriptions are also considered. 
 - Come up with some algorithm to determine "relevance" of results. Rank them and show top 5(ish)? 
 - Extend to use AI to show "best" results. 
