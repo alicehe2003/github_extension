@@ -13,7 +13,8 @@ Used `https://www.datamuse.com/api/` to search for synonyms. Issues with titles 
 Considerations for implementing search algorithms: 
 - Elasticsearch: https://www.elastic.co/elasticsearch (RESTful search engine built on top of Lucene, provides user-friendly UI, can be integrated with various languages)
 - Apache Lucene: https://lucene.apache.org/ (Java-centric)
-- Tensorflow: https://js.tensorflow.org/api/latest/ (ML library for JavaScript, supports Universal Sentence Encoder)
+- Tensorflow: https://js.tensorflow.org/api/latest/ (ML library for JavaScript, supports Universal Sentence Encoder) 
+- HuggingFace: https://medium.com/neural-engineer/sentence-similarity-and-semantic-search-d6995c5e368a 
 
 # Future considerations 
 
