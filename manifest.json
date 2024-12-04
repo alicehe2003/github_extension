@@ -1,30 +1,36 @@
 {
-    "manifest_version": 3,
-    "name": "GitHub Similar Issue Suggestion",
-    "version": "1.0",
-    "description": "Suggest similar issues when creating a new issue or PR on GitHub.",
-    "permissions": [
-      "activeTab",
-      "storage"
-    ],
-    "background": {
-      "service_worker": "background.js"
-    },
-    "content_scripts": [
-      {
-        "matches": ["https://github.com/*/issues/new*", "https://github.com/*/pull/new*"],
-        "css": ["styles.css"],
-        "js": ["content.js"]
-      }
-    ],
-    "action": {
-      "default_icon": "icons/icon.png",
-      "default_popup": "popup.html"
-    },
-    "icons": {
-      "16": "icons/icon.png",
-      "48": "icons/icon.png",
-      "128": "icons/icon.png"
+  "manifest_version": 3,
+  "name": "GitHub Similar Issue Suggestion",
+  "version": "1.0",
+  "description": "Suggest similar issues when creating a new issue or PR on GitHub.",
+  "permissions": [
+    "activeTab",
+    "storage"
+  ],
+  "host_permissions": [
+    "https://api.github.com/*",
+    "https://api-inference.huggingface.co/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://github.com/*/issues/new*", 
+        "https://github.com/*/pull/new*"
+      ],
+      "css": ["styles.css"],
+      "js": ["content.js"]
     }
+  ],
+  "action": {
+    "default_icon": "icons/icon.png",
+    "default_popup": "popup.html"
+  },
+  "icons": {
+    "16": "icons/icon.png",
+    "48": "icons/icon.png",
+    "128": "icons/icon.png"
   }
-  
+}

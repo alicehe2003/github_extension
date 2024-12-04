@@ -1,35 +1,5 @@
 console.log("Track similar issues on GitHub - extension running.");
 
-const fillerWords = ["a", "an", "the", "of", "and", "or", "for", "to", "in"];
-
-// Function to fetch synonyms using Datamuse API
-async function fetchSynonyms(word) {
-    // console.log("Finding similar words to " + word); 
-
-    const apiUrl = `https://api.datamuse.com/words?rel_syn=${word}`;
-    try {
-        const response = await fetch(apiUrl);
-        if (!response.ok) throw new Error(`Error fetching synonyms: ${response.status}`);
-        const data = await response.json();
-        
-        // console.log(data); 
-
-        // Extract words from the list of word objects
-        const synonyms = data.map(entry => entry.word);
-
-        // Log each retrieved word
-        // synonyms.forEach(synonym => {
-        //     console.log(`Retrieved synonym: ${synonym}`);
-        // });
-
-        return synonyms; 
-    } catch (error) {
-        console.error(error);
-        // Return an empty array on error
-        return []; 
-    }
-}
-
 // Function to check if we're on a new issue or new PR page
 function isNewIssuePage() {
     const currentPath = window.location.pathname;
@@ -38,7 +8,6 @@ function isNewIssuePage() {
 }
 
 // Function to get repository details (owner and repo name) from the GitHub page URL
-// URL assumed to be github.com/{owner}/{repo name}
 function getRepoDetails() {
     const pathSegments = window.location.pathname.split('/');
     const owner = pathSegments[1]; // The owner of the repo 
@@ -47,7 +16,7 @@ function getRepoDetails() {
 }
 
 // Function to fetch all issues based on the repo owner and repo name
-async function fetchIssues(owner, repo, newIssueTitle) {
+async function fetchIssues(owner, repo) {
     const baseApiUrl = `https://api.github.com/repos/${owner}/${repo}/issues`;
     let allIssues = [];
     let page = 1;
@@ -62,10 +31,18 @@ async function fetchIssues(owner, repo, newIssueTitle) {
             console.log(`Fetching page ${page}...`);
             
             const response = await fetch(apiUrl);
-            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            console.log(`Page ${page} response status:`, response.status);
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error(`HTTP error! status: ${response.status}`, errorText);
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
             
             const issues = await response.json();
             
+            console.log(`Page ${page} issues count:`, issues.length);
+
             // If no more issues, break the loop
             if (issues.length === 0) {
                 break;
@@ -85,70 +62,19 @@ async function fetchIssues(owner, repo, newIssueTitle) {
 
         console.log(`Total open issues found: ${allIssues.length}`);
         
-        // Log details of every single issue
-        console.log("All Open Issues:");
-        allIssues.forEach((issue, index) => {
-            console.log(`Issue #${index + 1}:`, {
-                number: issue.number,
-                title: issue.title,
-                state: issue.state,
-                created_at: issue.created_at,
-                url: issue.html_url
-            });
-        });
-        
-        const similarIssues = await findSimilarIssues(newIssueTitle, allIssues);
-        
-        console.log(`Number of similar issues found: ${similarIssues.length}`);
-        displaySimilarIssues(similarIssues);
+        return allIssues;
     } catch (error) {
-        console.error('Error fetching issues:', error);
+        console.error('Detailed error in fetchIssues:', error);
+        return [];
     }
 }
 
-// Function to find similar issues based on keywords in the title
-async function findSimilarIssues(newTitle, existingIssues) {
-    console.log("Finding similar issues..."); 
-
-    const cleanTitle = (title) => title
-        .toLowerCase()
-        .split(/\s+/)
-        .filter(word => word.length > 2 && !fillerWords.includes(word));
-
-    const titleWords = cleanTitle(newTitle);
-    
-    // Create a map to store original words and their synonyms
-    const keywordMap = new Map();
-
-    // Process each word to get its synonyms
-    for (const word of titleWords) {
-        try {
-            // Fetch synonyms for each word
-            const synonyms = await fetchSynonyms(word);
-            
-            // Store the original word along with its synonyms
-            keywordMap.set(word, [word, ...synonyms]);
-        } catch (error) {
-            console.error(`Error fetching synonyms for ${word}:`, error);
-            // If synonym fetching fails, just use the original word
-            keywordMap.set(word, [word]);
-        }
-    }
-
-    // Flatten the keywords, ensuring each original word and its synonyms are included
-    const allKeywords = new Set(
-        Array.from(keywordMap.values()).flat()
-    );
-
-    // Filter issues based on the expanded keyword set
-    return existingIssues.filter(issue => {
-        const issueWords = new Set(cleanTitle(issue.title));
-        return [...allKeywords].some(word => issueWords.has(word));
-    });
-}
+// Global variable to store issues and prevent repeated fetching
+let cachedIssues = null;
 
 // Function to display similar issues to the user
 function displaySimilarIssues(issues) {
+    console.log('Displaying similar issues:', issues);
 
     // Remove any existing suggestions container
     const existingContainer = document.querySelector('.similar-issues-container');
@@ -164,7 +90,10 @@ function displaySimilarIssues(issues) {
         'input[placeholder="Title"]'      // New issue/PR page (alternative)
     );
 
-    if (!issueTitleField) return;
+    if (!issueTitleField) {
+        console.log('No issue title field found');
+        return;
+    }
 
     // Create suggestions container
     const suggestionsContainer = document.createElement('div');
@@ -198,14 +127,14 @@ function displaySimilarIssues(issues) {
         headerElement.textContent = 'Similar Existing Issues:';
         suggestionsDiv.appendChild(headerElement);
 
-        // Create list of similar issues, take first 5
-        issues.slice(0, 5).forEach((issue, index) => {
+        // List similar issues, top 5
+        issues.forEach(item => {
             const issueElement = document.createElement('div');
             
             const issueLink = document.createElement('a');
-            issueLink.href = issue.html_url;
+            issueLink.href = item.issue.html_url;
             issueLink.target = "_blank";
-            issueLink.textContent = `#${issue.number}: ${issue.title}`;
+            issueLink.textContent = `(${(item.similarity * 100).toFixed(2)}%) #${item.issue.number}: ${item.issue.title}`;
             
             issueElement.appendChild(issueLink);
             suggestionsDiv.appendChild(issueElement);
@@ -216,10 +145,20 @@ function displaySimilarIssues(issues) {
     issueTitleField.parentNode.insertBefore(suggestionsContainer, issueTitleField.nextSibling);
 }
 
+// Debounce utility function
+function debounce(func, delay) {
+    let timeoutId;
+    return function (...args) {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => func.apply(this, args), delay);
+    };
+}
+
 // Function to initialize the listener
 function initializeIssueListener() {
     // Only process if on new issue or new PR page 
     if (!isNewIssuePage()) {
+        console.log('Not on a new issue or PR page');
         return; 
     }
 
@@ -232,13 +171,12 @@ function initializeIssueListener() {
     );
 
     if (issueTitleField) {
-
         // Prevent default select behaviour 
         issueTitleField.addEventListener('focus', (event) => {
             event.target.setSelectionRange(0, 0); 
         }); 
 
-        issueTitleField.addEventListener('input', debounce((event) => {
+        issueTitleField.addEventListener('input', debounce(async (event) => {
             const newTitle = event.target.value.trim();
 
             // Remove any existing suggestions when input is cleared
@@ -252,23 +190,38 @@ function initializeIssueListener() {
 
             if (newTitle.length > 3) { 
                 try {
-                    const { owner, repo } = getRepoDetails();
-                    fetchIssues(owner, repo, newTitle);
+                    // Fetch issues only once
+                    if (!cachedIssues) {
+                        const { owner, repo } = getRepoDetails();
+                        console.log('Fetching issues for:', owner, repo);
+                        cachedIssues = await fetchIssues(owner, repo);
+                    }
+
+                    console.log('Sending message to background script');
+                    // Request semantic similarity from background script
+                    chrome.runtime.sendMessage({
+                        action: 'fetchSentenceSimilarity',
+                        newIssueTitle: newTitle,
+                        existingIssues: cachedIssues
+                    }, (response) => {
+                        console.log('Received response from background script:', response);
+                        
+                        if (response.similarities) {
+                            displaySimilarIssues(response.similarities);
+                        } else if (response.error) {
+                            console.error('Error from background script:', response.error);
+                            console.error('Error stack:', response.stack);
+                        }
+                    });
+
                 } catch (error) {
-                    console.error('Error getting repo details:', error);
+                    console.error('Detailed error processing issues:', error);
                 }
             }
         }, 500));  // 500ms debounce to prevent too many API calls
-    } 
-}
-
-// Debounce utility function
-function debounce(func, delay) {
-    let timeoutId;
-    return function (...args) {
-        clearTimeout(timeoutId);
-        timeoutId = setTimeout(() => func.apply(this, args), delay);
-    };
+    } else {
+        console.log('No issue title field found');
+    }
 }
 
 // Use MutationObserver to ensure script runs on dynamic GitHub pages
