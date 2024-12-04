@@ -37,7 +37,7 @@ Considerations for implementing search algorithms:
 
 # TODO 
 
-- Current implementation using HuggingFace API has a limit of 1000 calls per day. To reduce API usage, implement some type of pre-filtering before making API call to compare phrases. 
+- Current implementation using HuggingFace API has a limit of 1000 calls per day. To reduce API usage, implement some type of pre-filtering before making API call to compare phrases. Consider using TensorFlow for pre-filtering of issues, then input into HuggingFace. 
 
 # Known Bugs 
 
