@@ -1,6 +1,6 @@
 // Configuration for HuggingFace API
 const HUGGINGFACE_API_ENDPOINT = 'https://api-inference.huggingface.co/models/sentence-transformers/all-MiniLM-L6-v2';
-const HUGGINGFACE_API_KEY = 'YOUR_API_KEY'; 
+const HUGGINGFACE_API_KEY = 'YOUR_API'; 
 
 // Function to calculate cosine similarity between two embeddings
 function cosineSimilarity(vec1, vec2) {
@@ -15,6 +15,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     console.log('Background script received message:', request);
 
     if (request.action === 'fetchSentenceSimilarity') {
+        // Log the details of the request
+        console.log('New Issue Title:', request.newIssueTitle);
+        console.log('Existing Issues:', request.existingIssues.map(issue => issue.title));
+
         // Fetch embeddings for all sentences
         fetchSentenceEmbeddings(request.newIssueTitle, request.existingIssues)
             .then(similarities => {
@@ -41,7 +45,11 @@ async function fetchSentenceEmbeddings(newIssueTitle, existingIssues) {
     console.log('Fetching sentence embeddings for:', newIssueTitle);
     console.log('Number of existing issues:', existingIssues.length);
 
-    const sentences = [newIssueTitle, ...existingIssues.map(issue => issue.title)];
+    // Add a check to prevent API call with empty input
+    if (!newIssueTitle || existingIssues.length === 0) {
+        console.log('No title or existing issues to process');
+        return [];
+    }
 
     try {
         console.log('Sending request to HuggingFace API');
@@ -68,18 +76,21 @@ async function fetchSentenceEmbeddings(newIssueTitle, existingIssues) {
         }
 
         const similarities = await response.json();
-        console.log('Received similarities:', similarities);
+        console.log('Received raw similarities:', similarities);
 
-        // Transform similarities into the format your code expects
-        const processedSimilarities = similarities.map((similarity, index) => ({
-            issue: existingIssues[index],
-            similarity: similarity
-        }))
-        .filter(item => item.similarity > 0.75)
+        // More detailed logging and processing
+        const processedSimilarities = similarities.map((similarity, index) => {
+            console.log(`Similarity for issue #${existingIssues[index].number}: ${similarity}`);
+            return {
+                issue: existingIssues[index],
+                similarity: similarity
+            };
+        })
+        .filter(item => item.similarity > 0.5)  
         .sort((a, b) => b.similarity - a.similarity)
         .slice(0, 5);  // Take top 5
 
-        console.log('Filtered similarities:', processedSimilarities);
+        console.log('Processed similarities:', processedSimilarities);
         return processedSimilarities;
 
     } catch (error) {
