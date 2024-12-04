@@ -159,6 +159,8 @@ function initializeIssueListener() {
     // Only process if on new issue or new PR page 
     if (!isNewIssuePage()) {
         console.log('Not on a new issue or PR page');
+        // Clear cached issues when leaving the new issue/PR page
+        cachedIssues = null;
         return; 
     }
 
@@ -226,10 +228,19 @@ function initializeIssueListener() {
 
 // Use MutationObserver to ensure script runs on dynamic GitHub pages
 function initializeExtension() {
+    // Function to handle page navigation changes
+    const handlePageChange = () => {
+        // Check if we're no longer on a new issue/PR page and clear cached issues
+        if (!isNewIssuePage()) {
+            cachedIssues = null;
+        }
+    };
+
     const observer = new MutationObserver((mutations) => {
         for (let mutation of mutations) {
             if (mutation.addedNodes.length) {
                 initializeIssueListener();
+                handlePageChange();
                 break;
             }
         }
@@ -239,6 +250,9 @@ function initializeExtension() {
         childList: true, 
         subtree: true 
     });
+
+    // Add event listener for popstate to handle browser navigation
+    window.addEventListener('popstate', handlePageChange);
 
     // Initial attempt
     initializeIssueListener();

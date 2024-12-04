@@ -1,6 +1,6 @@
 // Configuration for HuggingFace API
 const HUGGINGFACE_API_ENDPOINT = 'https://api-inference.huggingface.co/models/sentence-transformers/all-MiniLM-L6-v2';
-const HUGGINGFACE_API_KEY = 'YOUR_API'; 
+const HUGGINGFACE_API_KEY = 'YOUR_KEY'; 
 
 // Function to calculate cosine similarity between two embeddings
 function cosineSimilarity(vec1, vec2) {
@@ -86,9 +86,9 @@ async function fetchSentenceEmbeddings(newIssueTitle, existingIssues) {
                 similarity: similarity
             };
         })
-        .filter(item => item.similarity > 0.5)  
+        .filter(item => item.similarity > 0.1)          // Filter for similarity rate
         .sort((a, b) => b.similarity - a.similarity)
-        .slice(0, 5);  // Take top 5
+        .slice(0, 5);                                   // Take top 5
 
         console.log('Processed similarities:', processedSimilarities);
         return processedSimilarities;

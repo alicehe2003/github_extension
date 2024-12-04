@@ -27,4 +27,5 @@ Considerations for implementing search algorithms:
 
 - Edit GitHub API call such it issue descriptions are also considered. 
 - Come up with some algorithm to determine "relevance" of results. Rank them and show top 5(ish)? 
-- Extend to use AI to show "best" results. 
+
+- Current implementation using HuggingFace API has a limit of 1000 calls per day. To reduce API usage, implement some type of pre-filtering before making API call to compare phrases. 
