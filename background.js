@@ -1,6 +1,6 @@
 // Configuration for HuggingFace API
 const HUGGINGFACE_API_ENDPOINT = 'https://api-inference.huggingface.co/models/sentence-transformers/all-MiniLM-L6-v2';
-const HUGGINGFACE_API_KEY = 'YOUR_KEY'; 
+const HUGGINGFACE_API_KEY = 'YOUR_API_KEY'; 
 
 // Function to calculate cosine similarity between two embeddings
 function cosineSimilarity(vec1, vec2) {
