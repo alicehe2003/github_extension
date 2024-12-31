@@ -10,11 +10,11 @@ The `manifest.json` grants access to the active tab and runs `background.js` in 
 
 ## About `background.js` 
 
-`background.js` handles the API call to HuggingFace (the ML language model for semantic matching of sentences or phrases). The API call is placed in this file (as opposed to in `content.js`) so that the user's access token is not exposed. Note that the best practice would be to use implement a backend, where API calls are made. 
+Runs in background to ensure private keys are not exposed. 
 
 ## Current implementation 
 
-The current implementation does not contain a backend. The API call to HuggingFace is made in `background.js`, and the (public) API call to GitHub is made in `content.js`. This is not the ideal structure, but ensures that the extension can be run all on client-side. That is, clients can manage their own API keys and interract with the API service based on personal needs. 
+The current implementation does not contain a backend. This is not the ideal structure, but ensures that the extension can be run all on client-side. That is, clients can manage their own API keys and interract with the API service based on personal needs. 
 
 Upon opening a new issues or PR page, the extension retrieves all issues in the current repo and caches them locally. All title inputs and similarity searched will be based on these cached issues. Note that this means if a new issue is submitted while the user is on a new issues page, it will not be considered in the similarity search. The cache for these issues is cleared upon exiting the new issues or PR page. 
 
@@ -30,14 +30,14 @@ Considerations for implementing search algorithms:
 - Elasticsearch: https://www.elastic.co/elasticsearch (RESTful search engine built on top of Lucene, provides user-friendly UI, can be integrated with various languages)
 - Apache Lucene: https://lucene.apache.org/ (Java-centric)
 - Tensorflow: https://js.tensorflow.org/api/latest/ (ML library for JavaScript, supports Universal Sentence Encoder) 
-- HuggingFace: https://medium.com/neural-engineer/sentence-similarity-and-semantic-search-d6995c5e368a (Used in current implementation)
+- HuggingFace: https://medium.com/neural-engineer/sentence-similarity-and-semantic-search-d6995c5e368a 
 
 - Consider the issue description (instead of just title). 
 - Extend to work for private repos. Currently only works for public repos. This would involve using a private API key for Github to authenticate access for retrieving information on issues.  
 
 # TODO 
 
-- Current implementation using HuggingFace API has a limit of 1000 calls per day. To reduce API usage, implement some type of pre-filtering before making API call to compare phrases. Consider using TensorFlow for pre-filtering of issues, then input into HuggingFace. 
+- Current implementation using HuggingFace API has a limit of 1000 calls per day. Change to TensorFlow ML librairie. 
 
 # Known Bugs 
 
